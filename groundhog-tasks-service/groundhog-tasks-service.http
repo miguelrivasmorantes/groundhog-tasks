@@ -1,0 +1,6 @@
+@groundhog_tasks_service_HostAddress = http://localhost:5204
+
+GET {{groundhog_tasks_service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
