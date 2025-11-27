@@ -1,8 +1,14 @@
+using System;
+
 namespace GroundhogTasksService.Data.Entities
 {
     public class PermissionRole
     {
-        public int PermissionId { get; set; }
-        public int RoleId { get; set; }
+        public Guid Id { get; set; }
+        public Guid RoleId { get; set; }
+        public Role Role { get; set; } = null!;
+        public Guid PermissionId { get; set; }
+        public Permission Permission { get; set; } = null!;
+        public DateTime CreatedAt { get; set; }
     }
 }

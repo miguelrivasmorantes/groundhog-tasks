@@ -1,25 +1,24 @@
-// Data/Entities/User.cs
+using System;
+using System.Collections.Generic;
+
 namespace GroundhogTasksService.Data.Entities
 {
     public class User
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
+
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public string Password { get; set; } = null!;
-        public bool IsEmailVerified { get; set; } = false;
+        public string PasswordHash { get; set; } = null!;
         public bool IsActive { get; set; } = true;
-    }
-}
+        public bool IsEmailVerified { get; set; } = false;
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
-// Data/Entities/Group.cs
-namespace GroundhogTasksService.Data.Entities
-{
-    public class Group
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = null!;
-        public string Description { get; set; } = null!;
+        public ICollection<UserGroup> UserGroups { get; set; } = new List<UserGroup>();
+        public ICollection<UserAssignment> UserAssignments { get; set; } = new List<UserAssignment>();
+        public ICollection<Report> Reports { get; set; } = new List<Report>();
+        public ICollection<Assignment> CreatedAssignments { get; set; } = new List<Assignment>();
     }
 }

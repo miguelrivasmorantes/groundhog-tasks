@@ -1,18 +1,19 @@
 using DotNetEnv;
+//using groundhog_tasks_service.Data;
 using GroundhogTasksService.Data;
 using Microsoft.EntityFrameworkCore;
 
-Env.Load();
+Env.Load(); // carga las variables del .env
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Construir la cadena de conexión desde .env
 var connectionString =
-    $"Host={Env.GetString("DB_HOST")};" +
-    $"Port={Env.GetString("DB_PORT")};" +
-    $"Database={Env.GetString("DB_NAME")};" +
-    $"Username={Env.GetString("DB_USER")};" +
-    $"Password={Env.GetString("DB_PASS")}";
+    $"Host={Env.GetString("POSTGRES_HOST")};" +
+    $"Port={Env.GetString("POSTGRES_PORT")};" +
+    $"Database={Env.GetString("POSTGRES_DB")};" +
+    $"Username={Env.GetString("POSTGRES_USER")};" +
+    $"Password={Env.GetString("POSTGRES_PASSWORD")}";
 
 // Registrar DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
