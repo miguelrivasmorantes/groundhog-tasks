@@ -24,6 +24,8 @@ namespace GroundhogTasksService.Data
 
             modelBuilder.Entity<UserGroup>().ToTable("user_group");
 
+            modelBuilder.Entity<PermissionRole>().ToTable("permission_role");
+
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
             {
                 entity.SetTableName(ToSnakeCase(entity.GetTableName()!));
