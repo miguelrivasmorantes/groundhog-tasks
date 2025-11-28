@@ -17,7 +17,6 @@ namespace groundhog_tasks_service.Controllers
             _context = context;
         }
 
-        // GET: api/users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
@@ -36,7 +35,6 @@ namespace groundhog_tasks_service.Controllers
             return Ok(users);
         }
 
-        // GET: api/users/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetUser(Guid id)
         {
@@ -59,39 +57,30 @@ namespace groundhog_tasks_service.Controllers
             return Ok(user);
         }
 
-        // POST: api/users
         [HttpPost]
-        public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto dto)
+        public async Task<ActionResult<UserDto>> CreateUser(UserDto dto)
         {
             var user = new User
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Email = dto.Email,
-                PasswordHash = dto.Password, // en producción usar hash
-                IsActive = true,
-                IsEmailVerified = false
+                PasswordHash = dto.Password ?? "",
+                IsActive = dto.IsActive ?? true,
+                IsEmailVerified = dto.IsEmailVerified ?? false
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var result = new UserDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                IsActive = user.IsActive,
-                IsEmailVerified = user.IsEmailVerified
-            };
+            dto.Id = user.Id;
+            dto.Password = null;
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, result);
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, dto);
         }
 
-        // PUT: api/users/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(Guid id, UpdateUserDto dto)
+        public async Task<IActionResult> UpdateUser(Guid id, UserDto dto)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -104,7 +93,7 @@ namespace groundhog_tasks_service.Controllers
             if (!string.IsNullOrEmpty(dto.Email))
                 user.Email = dto.Email;
             if (!string.IsNullOrEmpty(dto.Password))
-                user.PasswordHash = dto.Password; // en producción usar hash
+                user.PasswordHash = dto.Password;
             if (dto.IsActive.HasValue)
                 user.IsActive = dto.IsActive.Value;
             if (dto.IsEmailVerified.HasValue)
