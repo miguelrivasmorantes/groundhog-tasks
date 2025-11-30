@@ -82,5 +82,27 @@ namespace groundhog_tasks_service.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpGet("{groupId}/assignments")]
+        public async Task<IActionResult> GetGroupAssignments(Guid groupId)
+        {
+            var exists = await _context.Groups.AnyAsync(g => g.Id == groupId);
+            if (!exists) return NotFound();
+
+            var assignments = await _context.Assignments
+                .Where(a => a.GroupId == groupId)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Name,
+                    a.Description,
+                    a.Cycles,
+                    a.Periodicity,
+                    a.StartDate
+                })
+                .ToListAsync();
+
+            return Ok(assignments);
+        }
     }
 }

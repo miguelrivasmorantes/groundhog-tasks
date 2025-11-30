@@ -1,13 +1,21 @@
 using System;
+using NpgsqlTypes;
 
 namespace GroundhogTasksService.Data.Entities
 {
     public enum UserAssignmentStatus
     {
-        Overdue,
-        Completed,
-        Pending,
-        DoneIncomplete
+        [PgName("overdue")]
+        overdue,
+
+        [PgName("completed")]
+        completed,
+
+        [PgName("pending")]
+        pending,
+
+        [PgName("done_incomplete")]
+        doneIncomplete
     }
 
     public class UserAssignment
@@ -17,7 +25,7 @@ namespace GroundhogTasksService.Data.Entities
         public User User { get; set; } = null!;
         public Guid AssignmentId { get; set; }
         public Assignment Assignment { get; set; } = null!;
-        public UserAssignmentStatus Status { get; set; } = UserAssignmentStatus.Pending;
+        public UserAssignmentStatus Status { get; set; } = UserAssignmentStatus.pending;
         public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

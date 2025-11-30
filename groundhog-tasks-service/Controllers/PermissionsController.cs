@@ -17,7 +17,6 @@ namespace groundhog_tasks_service.Controllers
             _context = context;
         }
 
-        // GET all permissions
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PermissionDto>>> GetPermissions()
         {
@@ -34,7 +33,6 @@ namespace groundhog_tasks_service.Controllers
             return Ok(permissions);
         }
 
-        // GET permission by id
         [HttpGet("{id}")]
         public async Task<ActionResult<PermissionDto>> GetPermission(Guid id)
         {
@@ -55,7 +53,6 @@ namespace groundhog_tasks_service.Controllers
             return Ok(permission);
         }
 
-        // GET roles that have this permission
         [HttpGet("{id}/roles")]
         public async Task<ActionResult<IEnumerable<RoleDto>>> GetRolesWithPermission(Guid id)
         {
@@ -78,7 +75,6 @@ namespace groundhog_tasks_service.Controllers
             return Ok(roles);
         }
 
-        // POST create a new permission
         [HttpPost]
         public async Task<ActionResult<PermissionDto>> CreatePermission(PermissionDto dto)
         {
@@ -103,7 +99,6 @@ namespace groundhog_tasks_service.Controllers
             return CreatedAtAction(nameof(GetPermission), new { id = permission.Id }, dto);
         }
 
-        // PUT update permission
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePermission(Guid id, PermissionDto dto)
         {
@@ -112,7 +107,6 @@ namespace groundhog_tasks_service.Controllers
             if (permission == null)
                 return NotFound();
 
-            // Validar duplicados
             if (await _context.Permissions.AnyAsync(p => p.Id != id && p.Name == dto.Name))
                 return BadRequest("Permission name already exists.");
 

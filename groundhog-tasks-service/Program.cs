@@ -1,6 +1,8 @@
 using DotNetEnv;
 using GroundhogTasksService.Data;
+using GroundhogTasksService.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 Env.Load();
 
@@ -13,10 +15,22 @@ var connectionString =
     $"Username={Env.GetString("POSTGRES_USER")};" +
     $"Password={Env.GetString("POSTGRES_PASSWORD")}";
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 
-builder.Services.AddControllers();
+dataSourceBuilder.MapEnum<UserAssignmentStatus>();
+
+var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(dataSource));
+
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

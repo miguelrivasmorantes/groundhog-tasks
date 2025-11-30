@@ -103,5 +103,27 @@ namespace groundhog_tasks_service.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("{userId}/assignments")]
+        public async Task<IActionResult> GetUserAssignments(Guid userId)
+        {
+            var exists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!exists) return NotFound();
+
+            var assignments = await _context.UserAssignments
+                .Where(ua => ua.UserId == userId)
+                .Select(ua => new
+                {
+                    ua.Assignment.Id,
+                    ua.Assignment.Name,
+                    ua.Assignment.Description,
+                    ua.Status,
+                    ua.AssignedAt,
+                    ua.UpdatedAt
+                })
+                .ToListAsync();
+
+            return Ok(assignments);
+        }
     }
 }
