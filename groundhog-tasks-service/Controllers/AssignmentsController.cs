@@ -1,8 +1,10 @@
-﻿using GroundhogTasksService.Data;
+﻿using groundhog_tasks_service.Api.DTOs;
+using groundhog_tasks_service.Services;
+using GroundhogTasksService.Data;
 using GroundhogTasksService.Data.Entities;
-using groundhog_tasks_service.Api.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace groundhog_tasks_service.Controllers
 {
@@ -11,10 +13,66 @@ namespace groundhog_tasks_service.Controllers
     public class AssignmentsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMailService _mailService;
+        private readonly IConfiguration _configuration;
 
-        public AssignmentsController(AppDbContext context)
+        public AssignmentsController(AppDbContext context, IMailService mailService, IConfiguration configuration)
         {
             _context = context;
+
+            _mailService = mailService;
+            _configuration = configuration;
+        }
+
+
+        [HttpGet("test-email-send")]
+        public async Task<IActionResult> TestEmailSend()
+        {
+            var apiKey = _configuration["RESEND_API_KEY"];
+            var senderEmail = _configuration["RESEND_SENDER_EMAIL"];
+            var senderName = _configuration["RESEND_SENDER_NAME"];
+
+            string destinatario = "";
+            string asunto = "Prueba de Conectividad - Groundhog Tasks";
+
+            string cuerpoHtml = @"
+                <div style='font-family: sans-serif; padding: 20px; border: 1px solid #ddd;'>
+                    <h2 style='color: #007bff;'>¡El sistema de correos funciona! 🚀</h2>
+                    <p>Este es un correo de prueba enviado desde el controlador para verificar la conexión con Resend.</p>
+                    <p>Si lees esto, el <strong>MailService</strong> genérico está listo.</p>
+                </div>";
+
+            try
+            {
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    throw new InvalidOperationException("Faltan las claves API de RESEND. Revisa tu .env.");
+                }
+
+                await _mailService.SendEmailAsync(destinatario, asunto, cuerpoHtml);
+
+                return Ok(new
+                {
+                    Status = "Éxito",
+                    Message = $"✅ Correo genérico ENVIADO a {destinatario}.",
+                    ConfiguracionLeida = new
+                    {
+                        RESEND_API_KEY = apiKey?.Substring(0, 5) + "...",
+                        RESEND_SENDER_EMAIL = senderEmail ?? "NULL",
+                        RESEND_SENDER_NAME = senderName ?? "NULL"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Status = "Error",
+                    Message = "❌ Fallo al enviar el correo de prueba.",
+                    ErrorDetails = ex.Message,
+                    Advice = "Revisa que tu API Key sea correcta y que el destinatario sea tu correo registrado en Resend."
+                });
+            }
         }
 
         [HttpGet]

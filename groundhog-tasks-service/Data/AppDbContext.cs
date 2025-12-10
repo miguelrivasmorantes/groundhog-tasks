@@ -17,6 +17,7 @@ namespace GroundhogTasksService.Data
         public DbSet<Permission> Permissions { get; set; } = null!;
         public DbSet<PermissionRole> PermissionRoles { get; set; } = null!;
         public DbSet<Report> Reports { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

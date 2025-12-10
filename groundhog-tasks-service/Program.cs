@@ -1,8 +1,11 @@
 using DotNetEnv;
+using groundhog_tasks_service.Services;
+using groundhog_tasks_service.Jobs;
 using GroundhogTasksService.Data;
 using GroundhogTasksService.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Quartz;
 
 Env.Load();
 
@@ -30,6 +33,25 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+builder.Services.AddTransient<IMailService, MailService>();
+
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("AssignmentReminderJob");
+
+    q.AddJob<AssignmentReminderJob>(opts => opts.WithIdentity(jobKey));
+
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("AssignmentReminderJob-trigger")
+        .StartAt(DateTimeOffset.UtcNow.AddSeconds(5))
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(5)
+            .RepeatForever()));
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

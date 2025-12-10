@@ -99,6 +99,18 @@ CREATE TABLE IF NOT EXISTS user_assignment (
     CONSTRAINT uq_user_assignment UNIQUE (user_id, assignment_id)
 );
 
+-- NOTIFICATIONS
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assignment_id UUID REFERENCES assignments(id) ON DELETE SET NULL,
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    is_sent BOOLEAN NOT NULL DEFAULT TRUE,
+    type VARCHAR(50) 
+);
+
 -- REPORTS
 CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
