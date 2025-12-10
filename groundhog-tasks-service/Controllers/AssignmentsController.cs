@@ -28,13 +28,10 @@ namespace groundhog_tasks_service.Controllers
         [HttpGet("test-email-send")]
         public async Task<IActionResult> TestEmailSend()
         {
-            // 1. Lectura de las variables SMTP (Para reporte de debug)
             var smtpHost = _configuration["SMTP_HOST"];
             var smtpEmail = _configuration["SMTP_EMAIL"];
             var senderName = _configuration["SMTP_SENDER_NAME"];
 
-            // 2. Destinatario: ¡AHORA PUEDES PONER CUALQUIERA! 
-            // Ya no estás limitado a tu propio correo.
             string destinatario = "miguel.rivas@alumnos.uneatlantico.es";
 
             string asunto = "Prueba de Conectividad SMTP - Groundhog Tasks";
@@ -48,16 +45,13 @@ namespace groundhog_tasks_service.Controllers
 
             try
             {
-                // 3. Verificación básica
                 if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpEmail))
                 {
                     throw new InvalidOperationException("Faltan las configuraciones SMTP en el .env (SMTP_HOST o SMTP_EMAIL).");
                 }
 
-                // 4. Ejecución del envío (Usando el método genérico)
                 await _mailService.SendEmailAsync(destinatario, asunto, cuerpoHtml);
 
-                // 5. Respuesta de Éxito
                 return Ok(new
                 {
                     Status = "Éxito",
@@ -72,7 +66,6 @@ namespace groundhog_tasks_service.Controllers
             }
             catch (Exception ex)
             {
-                // 6. Respuesta de Error
                 return StatusCode(500, new
                 {
                     Status = "Error",
