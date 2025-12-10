@@ -1,41 +1,56 @@
-﻿using Resend;
+﻿using System.Net;
+using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
 
 namespace groundhog_tasks_service.Services
 {
     public class MailService : IMailService
     {
-        private readonly IResend _client;
+        private readonly SmtpClient _smtpClient;
         private readonly string _senderEmail;
         private readonly string _senderName;
 
         public MailService(IConfiguration config)
         {
-            var apiKey = config["RESEND_API_KEY"] ??
-                         throw new ArgumentNullException("RESEND_API_KEY", "La clave API de Resend no se encontró.");
+            var host = config["SMTP_HOST"] ?? "smtp.gmail.com";
 
-            _senderEmail = config["RESEND_SENDER_EMAIL"] ?? "default@example.com";
-            _senderName = config["RESEND_SENDER_NAME"] ?? "System";
+            int port = int.TryParse(config["SMTP_PORT"], out int p) ? p : 587;
 
-            _client = ResendClient.Create(apiKey);
+            _senderEmail = config["SMTP_EMAIL"] ??
+                           throw new ArgumentNullException("SMTP_EMAIL", "Falta el correo en .env");
+
+            var password = config["SMTP_PASSWORD"] ??
+                           throw new ArgumentNullException("SMTP_PASSWORD", "Falta la contraseña de aplicación en .env");
+
+            _senderName = config["SMTP_SENDER_NAME"] ?? "System";
+
+            _smtpClient = new SmtpClient(host, port)
+            {
+                EnableSsl = true,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(_senderEmail, password)
+            };
         }
 
         public async Task SendEmailAsync(string recipientEmail, string subject, string htmlBody)
         {
-            var email = new EmailMessage
+            var mailMessage = new MailMessage
             {
-                From = $"{_senderName} <{_senderEmail}>",
-                To = new[] { recipientEmail },
+                From = new MailAddress(_senderEmail, _senderName),
                 Subject = subject,
-                HtmlBody = htmlBody,
-                TextBody = "Por favor, habilita HTML para ver este mensaje."
+                Body = htmlBody,
+                IsBodyHtml = true,
             };
 
-            var response = await _client.EmailSendAsync(email);
+            mailMessage.To.Add(recipientEmail);
 
-            if (response.Content == Guid.Empty)
+            try
             {
-                throw new Exception("El envío de Resend falló y no devolvió un ID válido.");
+                await _smtpClient.SendMailAsync(mailMessage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Fallo SMTP al enviar a {recipientEmail}: {ex.Message}");
             }
         }
     }

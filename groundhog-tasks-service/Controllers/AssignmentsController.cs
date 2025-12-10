@@ -28,49 +28,57 @@ namespace groundhog_tasks_service.Controllers
         [HttpGet("test-email-send")]
         public async Task<IActionResult> TestEmailSend()
         {
-            var apiKey = _configuration["RESEND_API_KEY"];
-            var senderEmail = _configuration["RESEND_SENDER_EMAIL"];
-            var senderName = _configuration["RESEND_SENDER_NAME"];
+            // 1. Lectura de las variables SMTP (Para reporte de debug)
+            var smtpHost = _configuration["SMTP_HOST"];
+            var smtpEmail = _configuration["SMTP_EMAIL"];
+            var senderName = _configuration["SMTP_SENDER_NAME"];
 
-            string destinatario = "";
-            string asunto = "Prueba de Conectividad - Groundhog Tasks";
+            // 2. Destinatario: ¡AHORA PUEDES PONER CUALQUIERA! 
+            // Ya no estás limitado a tu propio correo.
+            string destinatario = "miguel.rivas@alumnos.uneatlantico.es";
+
+            string asunto = "Prueba de Conectividad SMTP - Groundhog Tasks";
 
             string cuerpoHtml = @"
                 <div style='font-family: sans-serif; padding: 20px; border: 1px solid #ddd;'>
-                    <h2 style='color: #007bff;'>¡El sistema de correos funciona! 🚀</h2>
-                    <p>Este es un correo de prueba enviado desde el controlador para verificar la conexión con Resend.</p>
-                    <p>Si lees esto, el <strong>MailService</strong> genérico está listo.</p>
+                    <h2 style='color: #28a745;'>¡El sistema SMTP funciona! 📧</h2>
+                    <p>Este es un correo de prueba enviado a través de <strong>Gmail</strong>.</p>
+                    <p>Si lees esto, ya puedes enviar notificaciones a cualquier usuario.</p>
                 </div>";
 
             try
             {
-                if (string.IsNullOrEmpty(apiKey))
+                // 3. Verificación básica
+                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpEmail))
                 {
-                    throw new InvalidOperationException("Faltan las claves API de RESEND. Revisa tu .env.");
+                    throw new InvalidOperationException("Faltan las configuraciones SMTP en el .env (SMTP_HOST o SMTP_EMAIL).");
                 }
 
+                // 4. Ejecución del envío (Usando el método genérico)
                 await _mailService.SendEmailAsync(destinatario, asunto, cuerpoHtml);
 
+                // 5. Respuesta de Éxito
                 return Ok(new
                 {
                     Status = "Éxito",
-                    Message = $"✅ Correo genérico ENVIADO a {destinatario}.",
+                    Message = $"✅ Correo SMTP enviado a {destinatario}.",
                     ConfiguracionLeida = new
                     {
-                        RESEND_API_KEY = apiKey?.Substring(0, 5) + "...",
-                        RESEND_SENDER_EMAIL = senderEmail ?? "NULL",
-                        RESEND_SENDER_NAME = senderName ?? "NULL"
+                        SMTP_HOST = smtpHost,
+                        SMTP_EMAIL = smtpEmail,
+                        SMTP_SENDER_NAME = senderName ?? "NULL"
                     }
                 });
             }
             catch (Exception ex)
             {
+                // 6. Respuesta de Error
                 return StatusCode(500, new
                 {
                     Status = "Error",
-                    Message = "❌ Fallo al enviar el correo de prueba.",
+                    Message = "❌ Fallo al enviar el correo vía SMTP.",
                     ErrorDetails = ex.Message,
-                    Advice = "Revisa que tu API Key sea correcta y que el destinatario sea tu correo registrado en Resend."
+                    Advice = "Revisa que tu SMTP_PASSWORD sea la 'Contraseña de Aplicación' de 16 letras de Google (sin espacios)."
                 });
             }
         }
