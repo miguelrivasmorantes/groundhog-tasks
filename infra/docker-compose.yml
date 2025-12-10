@@ -20,6 +20,8 @@ services:
       context: ../groundhog-tasks-service
       dockerfile: Dockerfile
     container_name: groundhog_backend
+    env_file:
+      - ./../groundhog-tasks-service/.env
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
