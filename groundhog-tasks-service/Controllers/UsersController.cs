@@ -125,5 +125,23 @@ namespace groundhog_tasks_service.Controllers
 
             return Ok(assignments);
         }
+
+        [HttpGet("{userId}/groups")]
+        public async Task<ActionResult<IEnumerable<object>>> GetUserGroups(Guid userId)
+        {
+            var groups = await _context.UserGroups
+                .Where(ug => ug.UserId == userId)
+                .Include(ug => ug.Group)
+                .Select(ug => new
+                {
+                    ug.Group.Id,
+                    ug.Group.Name,
+                    ug.Group.Description,
+                    RoleName = ug.Role.Name
+                })
+                .ToListAsync();
+
+            return Ok(groups);
+        }
     }
 }

@@ -1,0 +1,112 @@
+﻿@page "/groups/{GroupId:guid}"
+@using groundhog_tasks_client.DTOs
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Tareas del Grupo</PageTitle>
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <button class="btn btn-outline-secondary btn-sm mb-3" @onclick='() => Navigation.NavigateTo("/my-groups")'>
+            ← Volver a mis grupos
+        </button>
+        <h2>📋 Tareas del Grupo</h2>
+        <p class="text-muted">Viendo las asignaciones de este grupo.</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (assignments.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            <h4>Este grupo no tiene tareas activas.</h4>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var task in assignments)
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm border-start border-4 @GetStatusColor(task.Status)">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title fw-bold">@task.Name</h5> <small class="text-muted">@task.StartDate.ToShortDateString()</small>
+                            </div>
+                            <p class="card-text">@task.Description</p>
+
+                            <div class="mt-2">
+                                <span class="badge bg-light text-dark border">@task.Status</span>
+                                @if (task.Periodicity != "00:00:00")
+                                {
+                                    <span class="badge bg-info text-dark ms-1">Recurrente</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid GroupId { get; set; }
+
+    private List<GroupAssignmentDto> assignments = new List<GroupAssignmentDto>();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"api/Groups/{GroupId}/assignments");
+
+            if (response.IsSuccessStatusCode)
+            {
+                assignments = await response.Content.ReadFromJsonAsync<List<GroupAssignmentDto>>() ?? new List<GroupAssignmentDto>();
+            }
+            else
+            {
+                errorMessage = $"Error al cargar tareas: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error de conexión: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusColor(string status) => status?.ToLower() switch
+    {
+        "completed" => "border-success",
+        "pending" => "border-warning",
+        "overdue" => "border-danger",
+        _ => "border-secondary"
+    };
+
+    public class GroupAssignmentDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Status { get; set; } = "Pending";
+        public DateTime StartDate { get; set; }
+        public string Periodicity { get; set; } = "";
+    }
+}

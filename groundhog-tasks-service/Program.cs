@@ -9,6 +9,8 @@ using Quartz;
 
 Env.Load();
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 

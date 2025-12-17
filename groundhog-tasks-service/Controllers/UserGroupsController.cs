@@ -19,19 +19,20 @@ namespace groundhog_tasks_service.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserGroupDto>>> GetUsersInGroup(Guid groupId)
+        public async Task<ActionResult<IEnumerable<object>>> GetUsersInGroup(Guid groupId)
         {
             if (!await _context.Groups.AnyAsync(g => g.Id == groupId))
                 return NotFound("Group not found.");
 
             var users = await _context.UserGroups
                 .Where(ug => ug.GroupId == groupId)
-                .Select(ug => new UserGroupDto
+                .Include(ug => ug.User)
+                .Select(ug => new
                 {
-                    Id = ug.Id,
-                    UserId = ug.UserId,
-                    GroupId = ug.GroupId,
-                    RoleId = ug.RoleId
+                    Id = ug.User.Id,
+                    FirstName = ug.User.FirstName,
+                    LastName = ug.User.LastName,
+                    Email = ug.User.Email
                 })
                 .ToListAsync();
 

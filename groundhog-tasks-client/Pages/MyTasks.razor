@@ -1,0 +1,110 @@
+﻿@page "/my-tasks"
+@using groundhog_tasks_client.DTOs
+@using Blazored.LocalStorage
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Mis Tareas</PageTitle>
+
+<div class="container mt-4">
+    <h2 class="mb-4">📋 Mis Tareas Asignadas</h2>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (assignments.Count == 0)
+    {
+        <div class="alert alert-success text-center shadow-sm">
+            <h4>¡Todo limpio!</h4>
+            <p>No tienes tareas pendientes asignadas a ti.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var task in assignments)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-start border-5 @GetBorderColor(task.Priority)">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge @GetStatusBadge(task.Status)">@task.Status</span>
+                                <small class="text-muted">@task.DueDate?.ToShortDateString()</small>
+                            </div>
+
+                            <h5 class="card-title">@task.Name</h5>
+
+                            @if (!string.IsNullOrEmpty(task.GroupName))
+                            {
+                                <h6 class="card-subtitle mb-2 text-muted text-small">
+                                    <i class="bi bi-people-fill"></i> @task.GroupName
+                                </h6>
+                            }
+
+                            <p class="card-text text-truncate">
+                                @(string.IsNullOrEmpty(task.Description) ? "Sin descripción" : task.Description)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white text-end">
+                            <button class="btn btn-outline-primary btn-sm">Ver Detalle</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<AssignmentDto> assignments = new List<AssignmentDto>();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await LocalStorage.GetItemAsync<UserData>("user");
+            
+            if (user != null)
+            {
+                var response = await Http.GetAsync($"api/Users/{user.Id}/assignments");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    assignments = await response.Content.ReadFromJsonAsync<List<AssignmentDto>>() ?? new List<AssignmentDto>();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetBorderColor(string priority) => priority?.ToLower() switch
+    {
+        "high" => "border-danger",
+        "medium" => "border-warning",
+        "low" => "border-success",
+        _ => "border-secondary"
+    };
+
+    private string GetStatusBadge(string status) => status?.ToLower() switch
+    {
+        "completed" => "bg-success",
+        "in progress" => "bg-primary",
+        "pending" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}
