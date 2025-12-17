@@ -1,0 +1,91 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.LocalStorage
+@using groundhog_tasks_client.DTOs
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+
+<div class="page">
+    @if (!IsLoginPage)
+    {
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+    }
+
+    <main>
+        @if (isAuthenticated || IsLoginPage)
+        {
+            @if (isAuthenticated)
+            {
+                <div class="top-row px-4">
+                    <span class="me-3">Sesión expira: @expirationTime.ToString("HH:mm")</span>
+                    <button class="btn btn-link" @onclick="Logout">Salir</button>
+                </div>
+            }
+
+            <article class="content px-4">
+                @Body
+            </article>
+        }
+        else
+        {
+            <div class="d-flex justify-content-center align-items-center vh-100">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        }
+    </main>
+</div>
+
+@code {
+    private bool isAuthenticated = false;
+    private DateTime expirationTime;
+
+    private bool IsLoginPage => Navigation.Uri.Contains("/login");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsLoginPage)
+        {
+            return;
+        }
+
+        await CheckSecurity();
+    }
+
+    private async Task CheckSecurity()
+    {
+        try
+        {
+            var user = await LocalStorage.GetItemAsync<UserData>("user");
+            var expiration = await LocalStorage.GetItemAsync<DateTime?>("expiration");
+
+            if (user == null || expiration == null || DateTime.UtcNow > expiration)
+            {
+                isAuthenticated = false;
+                await Logout();
+            }
+            else
+            {
+                isAuthenticated = true;
+                expirationTime = expiration.Value;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            await Logout();
+        }
+    }
+
+    private async Task Logout()
+    {
+        if (!IsLoginPage)
+        {
+            await LocalStorage.RemoveItemAsync("user");
+            await LocalStorage.RemoveItemAsync("expiration");
+            Navigation.NavigateTo("/login");
+        }
+    }
+}

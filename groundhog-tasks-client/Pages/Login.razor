@@ -1,0 +1,76 @@
+﻿@page "/login"
+@layout EmptyLayout
+
+@using groundhog_tasks_client.DTOs
+@using Blazored.LocalStorage
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+
+<div class="d-flex justify-content-center align-items-center vh-100" style="margin-top: -50px;">
+    <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+        <h3 class="text-center mb-3">Iniciar Sesión</h3>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger text-center" role="alert">
+                @errorMessage
+            </div>
+        }
+
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <div class="mb-3">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" @bind="loginModel.Email" required placeholder="ejemplo@correo.com" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" class="form-control" @bind="loginModel.Password" required placeholder="******" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginDto loginModel = new LoginDto();
+    private string errorMessage = "";
+
+    private async Task HandleLogin()
+    {
+        errorMessage = "";
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+                if (result != null && result.IsAuthenticated)
+                {
+                    await LocalStorage.SetItemAsync("user", result.UserData);
+                    await LocalStorage.SetItemAsync("expiration", result.SessionExpiresAt);
+
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    errorMessage = "Error al procesar la respuesta del servidor.";
+                }
+            }
+            else
+            {
+                errorMessage = "Usuario o contraseña incorrectos.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error de conexión: {ex.Message}";
+        }
+    }
+}

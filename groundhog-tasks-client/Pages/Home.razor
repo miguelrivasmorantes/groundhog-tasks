@@ -1,0 +1,23 @@
+﻿@page "/"
+@using groundhog_tasks_client.DTOs
+@using Blazored.LocalStorage
+@inject ILocalStorageService LocalStorage
+
+<PageTitle>Inicio</PageTitle>
+
+<h1>¡Bienvenido, @userName!</h1>
+
+<p>Si puedes ver esto, es que tu sesión es válida.</p>
+
+@code {
+    private string userName = "Usuario";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await LocalStorage.GetItemAsync<UserData>("user");
+        if (user != null)
+        {
+            userName = user.FirstName;
+        }
+    }
+}
