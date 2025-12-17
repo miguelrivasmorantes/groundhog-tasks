@@ -32,11 +32,11 @@ namespace groundhog_tasks_service.Controllers
             var smtpEmail = _configuration["SMTP_EMAIL"];
             var senderName = _configuration["SMTP_SENDER_NAME"];
 
-            string destinatario = "miguel.rivas@alumnos.uneatlantico.es";
+            var addressee = _configuration["TEST_EMAIL_RECIPIENT"];
 
-            string asunto = "Prueba de Conectividad SMTP - Groundhog Tasks";
+            string affair = "Prueba de Conectividad SMTP - Groundhog Tasks";
 
-            string cuerpoHtml = @"
+            string bodyHtml = @"
                 <div style='font-family: sans-serif; padding: 20px; border: 1px solid #ddd;'>
                     <h2 style='color: #28a745;'>¡El sistema SMTP funciona! 📧</h2>
                     <p>Este es un correo de prueba enviado a través de <strong>Gmail</strong>.</p>
@@ -50,12 +50,12 @@ namespace groundhog_tasks_service.Controllers
                     throw new InvalidOperationException("Faltan las configuraciones SMTP en el .env (SMTP_HOST o SMTP_EMAIL).");
                 }
 
-                await _mailService.SendEmailAsync(destinatario, asunto, cuerpoHtml);
+                await _mailService.SendEmailAsync(addressee, affair, bodyHtml);
 
                 return Ok(new
                 {
                     Status = "Éxito",
-                    Message = $"✅ Correo SMTP enviado a {destinatario}.",
+                    Message = $"✅ Correo SMTP enviado a {addressee}.",
                     ConfiguracionLeida = new
                     {
                         SMTP_HOST = smtpHost,

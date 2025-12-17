@@ -1,0 +1,89 @@
+﻿@page "/my-groups"
+@using groundhog_tasks_client.DTOs
+@using Blazored.LocalStorage
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Mis Grupos</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📂 Mis Grupos</h2>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (groups == null || groups.Count == 0)
+    {
+        <div class="alert alert-info text-center shadow-sm">
+            <h4>No perteneces a ningún grupo todavía.</h4>
+            <p>Pídele a un administrador que te invite.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var group in groups)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0 hover-effect">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title text-primary fw-bold">@group.Name</h5>
+                                <span class="badge bg-secondary">@group.RoleName</span>
+                            </div>
+
+                            <p class="card-text text-muted">
+                                @(string.IsNullOrEmpty(group.Description) ? "Sin descripción disponible." : group.Description)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0 text-end">
+                            <a href="/groups/@group.Id" class="btn btn-outline-primary btn-sm">
+                                Ver Tareas <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<UserGroupDto> groups = new List<UserGroupDto>();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await LocalStorage.GetItemAsync<UserData>("user");
+
+            if (user != null)
+            {
+                var response = await Http.GetAsync($"api/Users/{user.Id}/groups");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    groups = await response.Content.ReadFromJsonAsync<List<UserGroupDto>>() ?? new List<UserGroupDto>();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

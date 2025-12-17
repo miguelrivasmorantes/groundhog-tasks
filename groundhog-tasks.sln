@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36623.8 d17.14
+VisualStudioVersion = 17.14.36623.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "groundhog-tasks-service", "groundhog-tasks-service\groundhog-tasks-service.csproj", "{97E65055-EAE9-4C2F-AF01-746BAAE4E4FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "groundhog-tasks-client", "groundhog-tasks-client\groundhog-tasks-client.csproj", "{00886683-3CCC-4771-8B25-FBDEB2F6B906}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{97E65055-EAE9-4C2F-AF01-746BAAE4E4FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97E65055-EAE9-4C2F-AF01-746BAAE4E4FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97E65055-EAE9-4C2F-AF01-746BAAE4E4FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00886683-3CCC-4771-8B25-FBDEB2F6B906}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00886683-3CCC-4771-8B25-FBDEB2F6B906}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00886683-3CCC-4771-8B25-FBDEB2F6B906}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00886683-3CCC-4771-8B25-FBDEB2F6B906}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
